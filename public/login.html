@@ -1,0 +1,56 @@
+<html>
+    <body>
+        <form method="post" action="http://localhost:89/login">
+            <input name="username"></input>
+            <input type="password" name="password"></input>
+            <input type="submit"></input>
+        </form>
+
+        <script>
+        document.forms[0].onsubmit = async (e) => {
+            
+            // Do not submit data synchrounously
+            e.preventDefault();
+            // Create a json object with the username and password from the form
+            const data = {
+                username: document.getElementsByTagName('input')[0].value,
+                password: document.getElementsByTagName('input')[1].value
+            }
+
+            // Send post request to the server asynchrounously
+            // fetch sends the asynchrounous request
+            // The request is sent to the server according to the url that was set in: document.forms[0].action
+            // The await keyword ensures that 'res' will have the result from the server.
+            // even though 'fetch' is asynchrounous
+            const res = await fetch(document.forms[0].action, {
+                'method': 'post', // send a post request
+                'headers': {
+                'Content-Type': 'application/json', // the data (username/password) is in the form of a JSON object
+                },
+                'body': JSON.stringify(data) // The actual data (username/password)
+            })
+
+            // The server's response is a json object
+            const json = await res.json()
+
+            if (res.status != 201)
+                alert('Invalid username and/or password')
+            else {
+            // Correct username/password
+            // Take the token the server sent us
+            // and make *another* request to the homepage
+            // but attach the token to the request
+                const res = await fetch('http://localhost:89/', {
+                'headers': {
+                'Content-Type': 'application/json',
+                'authorization': 'bearer ' + json.token // attach the token
+                },
+                })
+                // Show the server's response
+                const result = await res.json()
+                alert('the secret data is: ' + result.data)
+            }
+        }
+        </script>
+    </body>
+</html>
